@@ -12,62 +12,7 @@
 }
 
 /* Header */
-.header {
-  background: linear-gradient(to right, #ea580c, #dc2626);
-  color: white;
-  position: sticky;
-  top: 0;
-  z-index: 40;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-}
 
-.header-container {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 1rem;
-}
-
-.header-content {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.logo {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.logo-icon {
-  font-size: 2rem;
-}
-
-.logo-text {
-  font-size: 1.5rem;
-  font-weight: bold;
-}
-
-.nav-desktop {
-  display: none;
-  gap: 1.5rem;
-}
-
-.nav-link {
-  color: white;
-  text-decoration: none;
-  transition: color 0.3s;
-}
-
-.nav-link:hover {
-  color: #fed7aa;
-}
-
-.header-actions {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
 
 .cart-button {
   position: relative;
@@ -98,31 +43,6 @@
   display: flex;
   align-items: center;
   justify-content: center;
-}
-
-.menu-button {
-  display: block;
-  padding: 0.5rem;
-  background: transparent;
-  border: none;
-  color: white;
-  cursor: pointer;
-  border-radius: 0.5rem;
-  transition: background-color 0.3s;
-}
-
-.menu-button:hover {
-  background-color: rgba(255, 255, 255, 0.2);
-}
-
-.nav-mobile {
-  margin-top: 1rem;
-  padding-bottom: 1rem;
-}
-
-.nav-mobile .nav-link {
-  display: block;
-  padding: 0.5rem 0;
 }
 
 /* Hero */
@@ -184,14 +104,6 @@
   background-color: rgba(255, 255, 255, 0.1);
 }
 
-/* Banner */
-.banner {
-  background-color: #22c55e;
-  color: white;
-  text-align: center;
-  padding: 0.75rem;
-  font-weight: 600;
-}
 
 /* Menu Section */
 .menu-section {
@@ -322,64 +234,6 @@
 
 .add-to-cart-btn:hover {
   background-color: #c2410c;
-}
-
-/* About Section */
-.about-section {
-  background-color: white;
-  padding: 4rem 1rem;
-}
-
-.about-content {
-  max-width: 48rem;
-  margin: 0 auto;
-  text-align: center;
-}
-
-.about-text {
-  color: #4b5563;
-  font-size: 1.125rem;
-  margin-bottom: 1rem;
-}
-
-/* Contact Section */
-.contact-section {
-  background-color: #f3f4f6;
-  padding: 4rem 1rem;
-}
-
-.contact-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 2rem;
-  max-width: 56rem;
-  margin: 0 auto;
-}
-
-.contact-item {
-  text-align: center;
-}
-
-.contact-icon {
-  font-size: 2.5rem;
-  margin-bottom: 0.75rem;
-}
-
-.contact-title {
-  font-weight: bold;
-  margin-bottom: 0.5rem;
-}
-
-.contact-text {
-  color: #4b5563;
-}
-
-/* Footer */
-.footer {
-  background-color: #111827;
-  color: white;
-  padding: 2rem 1rem;
-  text-align: center;
 }
 
 /* Cart Sidebar */

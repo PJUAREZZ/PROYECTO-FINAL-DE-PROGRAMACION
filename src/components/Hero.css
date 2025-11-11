@@ -1,0 +1,135 @@
+/* ==================== HERO SECTION ==================== */
+.hero-section {
+  background: linear-gradient(to bottom right, #f97316, #ef4444, #ec4899);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 5rem 2rem 3rem;
+  min-height: 45vh;
+}
+
+.hero-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+  max-width: 1100px;
+}
+
+.hero-titulo {
+  font-size: 3.5rem;
+  font-weight: bold;
+  color: white;
+  margin: 0;
+  line-height: 1.2;
+  margin-bottom: 15px;
+}
+
+/* ==================== PÁRRAFO ==================== */
+.hero-parrafo {
+  font-size: 1.25rem;
+  color: white;
+  max-width: 700px;
+  margin: 0;
+  line-height: 1.6;
+  opacity: 0.95;
+}
+
+/* ==================== BOTONES ==================== */
+.secciones-container {
+  display: flex;
+  gap: 1.5rem;
+  margin-top: 1rem;
+}
+
+.boton-primario,
+.boton-secundario {
+  padding: 0.875rem 2rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+  border-radius: 50px;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+/* Botón Primario (Ver menú) */
+.boton-primario {
+  background-color: white;
+  color: #ea580c;
+  border: 2px solid white;
+}
+
+.boton-primario:hover {
+  background-color: transparent;
+  color: white;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+/* Botón Secundario (Contáctanos) */
+.boton-secundario {
+  background-color: transparent;
+  color: white;
+  border: 2px solid white;
+}
+
+.boton-secundario:hover {
+  background-color: white;
+  color: #dc2626;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+/* ==================== BANNER ENVÍO ==================== */
+.banner {
+  background-color: #22c55e;
+  color: white;
+  padding: 0.875rem 1rem;
+  font-size: 1rem;
+  font-weight: 600;
+  text-align: center;
+}
+
+/* ==================== RESPONSIVE ==================== */
+@media (max-width: 768px) {
+  .hero-section {
+    padding: 4rem 1.5rem 2.5rem;
+    min-height: 60vh;
+  }
+
+  .hero-titulo {
+    font-size: 2.5rem;
+  }
+
+  .hero-parrafo {
+    font-size: 1.1rem;
+  }
+
+  .secciones-container {
+    flex-direction: column;
+    width: 100%;
+    max-width: 300px;
+  }
+
+  .boton-primario,
+  .boton-secundario {
+    width: 100%;
+    text-align: center;
+  }
+
+  .banner {
+    font-size: 0.9rem;
+    padding: 0.65rem 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .hero-titulo {
+    font-size: 2rem;
+  }
+
+  .hero-parrafo {
+    font-size: 1rem;
+  }
+}
