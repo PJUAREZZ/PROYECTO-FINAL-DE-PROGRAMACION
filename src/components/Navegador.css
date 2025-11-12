@@ -1,0 +1,162 @@
+/* ==================== HEADER ==================== */
+header {
+  background: linear-gradient(to right, #ea580c, #dc2626);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 2rem;
+  position: relative;
+}
+
+/* ==================== LOGO ==================== */
+.logo-container {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.logo-container svg,
+.logo-container img {
+  width: 40px;
+  height: 40px;
+  color: white;
+}
+
+.logo-container p {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: white;
+  margin: 0;
+}
+
+/* ==================== NAVEGACIÓN DESKTOP ==================== */
+nav {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+}
+
+.nav-ul {
+  display: flex;
+  gap: 2.5rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.nav-li {
+  color: white;
+  text-decoration: none;
+  font-size: 1.1rem;
+  font-weight: 500;
+  transition: opacity 0.3s ease;
+}
+
+.nav-li:hover {
+  opacity: 0.8;
+}
+
+/* ==================== ACCIONES (Carrito y Menú) ==================== */
+.actions-container {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.actions-container button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.3s ease;
+}
+
+.actions-container button:hover {
+  opacity: 0.8;
+}
+
+.actions-container svg {
+  width: 28px;
+  height: 28px;
+  color: white;
+  stroke-width: 2;
+}
+
+/* Ocultar menú hamburguesa en desktop */
+.actions-container .menu-button{
+    display: none;
+}
+
+/* ==================== NAVEGACIÓN MÓVIL ==================== */
+.nav-mobile {
+  display: none;
+}
+
+/* ==================== RESPONSIVE (< 768px) ==================== */
+@media (max-width: 768px) {
+  /* Ocultar navegación desktop */
+  nav:not(.nav-mobile) {
+    display: none;
+  }
+
+  /* Mostrar botón hamburguesa */
+  .actions-container .menu-button {
+    display: flex;
+  }
+
+  /* Menú móvil dropdown */
+  .nav-mobile {
+    display: block;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 100%;
+    background-color: #ff6b35;
+    border-top: 2px solid rgba(255, 255, 255, 0.2);
+    animation: slideDown 0.3s ease;
+  }
+
+  .nav-mobile .nav-ul {
+    flex-direction: column;
+    gap: 0;
+    padding: 0.5rem 0;
+  }
+
+  .nav-mobile .nav-ul li {
+    width: 100%;
+  }
+
+  .nav-mobile .nav-li {
+    display: block;
+    padding: 1rem 2rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .nav-mobile .nav-li:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+  }
+
+  /* Ajustar padding del header en móvil */
+  header {
+    padding: 1rem 1.5rem;
+  }
+
+  .logo-container p {
+    font-size: 1.25rem;
+  }
+}
+
+/* ==================== ANIMACIÓN ==================== */
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
