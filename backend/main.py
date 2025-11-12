@@ -1,145 +1,148 @@
-from fastapi import FastAPI, Depends, HTTPException
-from fastapi.middleware.cors import CORSMiddleware
-from sqlalchemy.orm import Session
-from typing import List
+# IMPORTANTE!!
+# Instalación de dependencias del proyecto
+# Para instalar todas las dependencias necesarias, desde la terminal, ejecuta el siguiente comando en la raíz del proyecto:
+#
+#     pip install -r requirements.txt
+#
+# Este comando instalará automáticamente todas las librerías listadas en el archivo
+# requirements.txt, incluyendo FastAPI, Uvicorn (para ejecutar el servidor) y otras
+# dependencias requeridas por la aplicación.
 
-import models
-import schemas
-import crud
-from database import engine, get_db
+# Por ultimo ejecuta el comando uvicorn main:app --reload para levantar el servidor de la api
 
-# Crear las tablas en la base de datos
-models.Base.metadata.create_all(bind=engine)
+#  Importamos todas las librerias que utilizaremos
+from fastapi import FastAPI, HTTPException
+import sqlite3
+from pydantic import BaseModel  
+from datetime import datetime
 
-app = FastAPI(
-    title="Bar & Grill API",
-    description="API para gestión de restaurante",
-    version="1.0.0"
-)
 
-# Configurar CORS
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["http://localhost:3000"],  # React app
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+# La variable DB_NAME almacena el nombre del archivo de la base de datos SQLite
+# "negocio.db" es el archivo donde se guardan todas las tablas y registros del proyecto
 
-# ========== ENDPOINTS DE PRODUCTOS ==========
+DB_NAME = "negocio.db"
 
+# Esta funcion inicializa la conxion a la base de datos de SQLite y crea las tablas necesarias para el proyecto (productos, pedidos, pedido_detalle)
+def init_db():
+    """Inicializa la base de datos y crea la tabla si no existe"""
+    conn = sqlite3.connect(DB_NAME) # Conexion a la base de datos
+    cursor = conn.cursor() # El cursor prepara la conexión (conn) para poder enviar consultas y recibir resultados desde SQLite.
+
+    # creacion Tabla PRODUCTOS
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS productos (
+            producto_id INTEGER PRIMARY KEY AUTOINCREMENT,
+            nombre TEXT NOT NULL,
+            descripcion TEXT,
+            precio REAL NOT NULL,
+            imagen TEXT,
+            categoria TEXT NOT NULL,
+            fecha_creacion TEXT NOT NULL
+        )
+    """)
+    
+    # creacion Tabla PEDIDOS
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS pedidos (
+            pedido_id INTEGER PRIMARY KEY AUTOINCREMENT,
+            nombre_cliente TEXT NOT NULL,
+            direccion TEXT NOT NULL,
+            total REAL NOT NULL,
+            fecha_pedido TEXT NOT NULL
+        )
+    """)
+    
+    # creacion Tabla PEDIDO_DETALLE
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS pedido_detalle (
+            detalle_id INTEGER PRIMARY KEY AUTOINCREMENT,
+            pedido_id INTEGER NOT NULL,
+            producto_id INTEGER NOT NULL,
+            cantidad INTEGER NOT NULL,
+            precio_unitario REAL NOT NULL,
+            FOREIGN KEY (pedido_id) REFERENCES pedidos(pedido_id),
+            FOREIGN KEY (producto_id) REFERENCES productos(producto_id)
+        )
+    """)
+
+    conn.commit() # Se guardan los cambios 
+    conn.close() # importante cerrar la conexion de la base de datos
+    print("Base de datos inicializada")
+
+
+def get_db_connection():
+    """Obtiene una conexión a la base de datos"""
+    conn = sqlite3.connect(DB_NAME)
+    conn.row_factory = sqlite3.Row
+    return conn
+
+# instancia de FastApi
+app = FastAPI()
+
+# ejecutamos la funcion que prepara la base de datos
+init_db()
+
+# Creamos un objeto Productos con sus respectivos atributos, utilizando el BaseModel de FastApi
+class Productos(BaseModel): 
+    nombre: str
+    descripcion: str
+    precio: int 
+    imagen: str
+    categoria: str
+
+
+
+# Enpoint Raiz
 @app.get("/")
-def read_root():
-    return {"message": "Bar & Grill API - Bienvenido"}
+def root(): 
+    return {
+        "mensaje" : "Esta es la api de nuestra pagina"
+    }
 
-@app.get("/products/", response_model=List[schemas.Product])
-def read_products(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
-    """Obtener todos los productos disponibles"""
-    products = crud.get_products(db, skip=skip, limit=limit)
-    return products
-
-@app.get("/products/{product_id}", response_model=schemas.Product)
-def read_product(product_id: int, db: Session = Depends(get_db)):
-    """Obtener un producto por ID"""
-    db_product = crud.get_product(db, product_id=product_id)
-    if db_product is None:
-        raise HTTPException(status_code=404, detail="Producto no encontrado")
-    return db_product
-
-@app.get("/products/category/{category}", response_model=List[schemas.Product])
-def read_products_by_category(category: str, db: Session = Depends(get_db)):
-    """Obtener productos por categoría (pizzas, sandwiches, wraps)"""
-    products = crud.get_products_by_category(db, category=category)
-    return products
-
-@app.post("/products/", response_model=schemas.Product, status_code=201)
-def create_product(product: schemas.ProductCreate, db: Session = Depends(get_db)):
-    """Crear un nuevo producto"""
-    return crud.create_product(db=db, product=product)
-
-@app.put("/products/{product_id}", response_model=schemas.Product)
-def update_product(product_id: int, product: schemas.ProductUpdate, db: Session = Depends(get_db)):
-    """Actualizar un producto existente"""
-    db_product = crud.update_product(db=db, product_id=product_id, product=product)
-    if db_product is None:
-        raise HTTPException(status_code=404, detail="Producto no encontrado")
-    return db_product
-
-@app.delete("/products/{product_id}")
-def delete_product(product_id: int, db: Session = Depends(get_db)):
-    """Eliminar (desactivar) un producto"""
-    db_product = crud.delete_product(db=db, product_id=product_id)
-    if db_product is None:
-        raise HTTPException(status_code=404, detail="Producto no encontrado")
-    return {"message": "Producto eliminado exitosamente"}
-
-# ========== ENDPOINTS DE ÓRDENES ==========
-
-@app.get("/orders/", response_model=List[schemas.Order])
-def read_orders(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
-    """Obtener todas las órdenes"""
-    orders = crud.get_orders(db, skip=skip, limit=limit)
-    return orders
-
-@app.get("/orders/{order_id}", response_model=schemas.Order)
-def read_order(order_id: int, db: Session = Depends(get_db)):
-    """Obtener una orden por ID"""
-    db_order = crud.get_order(db, order_id=order_id)
-    if db_order is None:
-        raise HTTPException(status_code=404, detail="Orden no encontrada")
-    return db_order
-
-@app.post("/orders/", response_model=schemas.Order, status_code=201)
-def create_order(order: schemas.OrderCreate, db: Session = Depends(get_db)):
-    """Crear una nueva orden"""
-    return crud.create_order(db=db, order=order)
-
-@app.patch("/orders/{order_id}/status", response_model=schemas.Order)
-def update_order_status(order_id: int, order_update: schemas.OrderUpdate, db: Session = Depends(get_db)):
-    """Actualizar el estado de una orden"""
-    db_order = crud.update_order_status(db=db, order_id=order_id, status=order_update.status)
-    if db_order is None:
-        raise HTTPException(status_code=404, detail="Orden no encontrada")
-    return db_order
-
-# ========== ENDPOINT PARA INICIALIZAR DATOS DE PRUEBA ==========
-
-@app.post("/init-data/")
-def initialize_data(db: Session = Depends(get_db)):
-    """Crear productos de prueba en la base de datos"""
+# Enpoint que utiliza una operacion POST para agregar productos 
+@app.post("/productos" , status_code=201)
+def agregar_productos(producto: Productos): 
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute(""" INSERT INTO productos (nombre, descripcion, precio, imagen, categoria, fecha_creacion) 
+    VALUES(?, ?, ?, ?, ?, ?)""" , 
+    (producto.nombre,
+     producto.descripcion, 
+     producto.precio, 
+     producto.imagen, 
+     producto.categoria,
+     datetime.now().isoformat() # operador que obtiene la fecha en la que se realiza el put
+    )) # ejecuta codigo SQL, inserta los valores de los atributos para que sean agregados a las tablas
     
-    # Verificar si ya hay productos
-    existing_products = crud.get_products(db)
-    if existing_products:
-        return {"message": "La base de datos ya tiene productos"}
+    producto_id = cursor.lastrowid # obtiene el id del ultimo objeto agregado
+    conn.commit()
+    conn.close()
+    return {
+        "mensaje": "Producto creado exitosamente",
+        "producto_id": producto_id
+    } # mostramos mensaje de exito 
     
-    # Productos de prueba
-    products_data = [
-        # Pizzas
-        schemas.ProductCreate(name="Pizza Margarita", description="Salsa de tomate, mozzarella fresca y albahaca", price=8500, category="pizzas", image="🍕"),
-        schemas.ProductCreate(name="Pizza Pepperoni", description="Pepperoni, mozzarella y orégano", price=9500, category="pizzas", image="🍕"),
-        schemas.ProductCreate(name="Pizza Cuatro Quesos", description="Mozzarella, gorgonzola, parmesano y provolone", price=10500, category="pizzas", image="🍕"),
-        schemas.ProductCreate(name="Pizza Hawaiana", description="Jamón, piña y mozzarella", price=9000, category="pizzas", image="🍕"),
-        
-        # Sandwiches
-        schemas.ProductCreate(name="Sandwich Clásico", description="Jamón, queso, lechuga y tomate", price=5500, category="sandwiches", image="🥪"),
-        schemas.ProductCreate(name="Sandwich Vegetariano", description="Vegetales grillados, hummus y rúcula", price=6000, category="sandwiches", image="🥪"),
-        schemas.ProductCreate(name="Sandwich de Pollo", description="Pollo grillado, queso cheddar y salsa BBQ", price=6500, category="sandwiches", image="🥪"),
-        schemas.ProductCreate(name="Sandwich Completo", description="Carne, huevo, queso, lechuga y tomate", price=7000, category="sandwiches", image="🥪"),
-        
-        # Wraps
-        schemas.ProductCreate(name="Wrap César", description="Pollo, lechuga romana, parmesano y aderezo césar", price=6500, category="wraps", image="🌯"),
-        schemas.ProductCreate(name="Wrap Mexicano", description="Carne, frijoles, guacamole y pico de gallo", price=7000, category="wraps", image="🌯"),
-        schemas.ProductCreate(name="Wrap Vegano", description="Falafel, hummus, vegetales frescos", price=6500, category="wraps", image="🌯"),
-        schemas.ProductCreate(name="Wrap BBQ", description="Pollo BBQ, cebolla caramelizada y queso", price=7500, category="wraps", image="🌯"),
-    ]
     
-    for product_data in products_data:
-        crud.create_product(db, product_data)
-    
-    return {"message": "Datos de prueba creados exitosamente", "products": len(products_data)}
+
+# Enpoint que uitliza una operacion GET para obtener los datos de los productos
+@app.get("/productos", status_code=200)
+def mostrar_productos(): 
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute(""" SELECT * FROM productos """) # Consulta SQL 
+    productos = [dict(row) for row in cursor.fetchall()] # Convierte los resultados de la consulta en un diccionario
+    conn.close()
+    return productos
 
 
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+# Enpoint que utiliza una operacion GET para obtener los datos de un producto en especifico segun su id
+@app.get("/productos/{producto_id}", status_code=200)
+def mostrar_producto_individual(producto_id : int):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute(""" SELECT * FROM productos WHERE producto_id = ? """, (producto_id,)) # Consulta de SQL 
+    productoIndividual = cursor.fetchone()
+    conn.close()  
+    if productoIndividual is None: 
+        raise HTTPException(status_code=404, detail={"No se encontro el producto"}) # Manejo de errores
+    return dict(productoIndividual)
