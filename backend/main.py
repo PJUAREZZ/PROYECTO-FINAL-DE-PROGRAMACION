@@ -86,10 +86,20 @@ init_db()
 class Productos(BaseModel): 
     nombre: str
     descripcion: str
-    precio: int 
+    precio: float
     imagen: str
     categoria: str
 
+# Creamos un Objeto DetallePedido con sus respectivos atributos
+class DetallePedido(BaseModel): 
+    producto_id : int
+    cantidad: int
+
+# Creamos un Objeto Pedido con sus respectivos atributos
+class Pedido(BaseModel): 
+    nombre_cliente: str
+    direccion: str
+    detalles: list[DetallePedido]
 
 
 # Enpoint Raiz
@@ -146,3 +156,83 @@ def mostrar_producto_individual(producto_id : int):
     if productoIndividual is None: 
         raise HTTPException(status_code=404, detail={"No se encontro el producto"}) # Manejo de errores
     return dict(productoIndividual)
+
+# Endpoint que utiliza la operacion POST para cargar los datos de los pedidos y sus detalles
+@app.post("/pedidos")
+def cargar_pedido(pedido: Pedido):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    
+    total = 0 # Variable que se utilizara para calcular almacenar el total de la compra
+    for item in pedido.detalles: 
+        # Buscar el precio del producto
+        cursor.execute(
+            "SELECT precio FROM productos WHERE producto_id = ?",
+            (item.producto_id,)
+        )
+        producto = cursor.fetchone()
+        if producto is None:
+            conn.close()
+            raise HTTPException(
+                status_code=404, 
+                detail=f"Producto con ID {item.producto_id} no encontrado"
+            )
+        total += producto['precio'] * item.cantidad # Operacion que calcula el precio total del pedido
+
+    # Se agregan los datos a la tabla pedidos
+    cursor.execute(""" INSERT INTO pedidos (nombre_cliente, direccion, total, fecha_pedido)
+                    VALUES (?, ?, ?, ? )""", 
+                    (pedido.nombre_cliente,
+                    pedido.direccion,
+                    total, # Resultado de nuestra operacion
+                    datetime.now().isoformat()))
+    pedido_id = cursor.lastrowid
+
+    # Bucle que busca el precio unitario e inserta los datos a la tabla de detalles_pedido
+    for item in pedido.detalles: 
+        cursor.execute(""" SELECT precio FROM productos WHERE producto_id = ?""", (item.producto_id,)) 
+        precio = cursor.fetchone()['precio']
+
+        cursor.execute(""" INSERT INTO pedido_detalle(pedido_id, producto_id, cantidad, precio_unitario)
+                    VALUES (?, ?, ?, ?)""", 
+                    (pedido_id, 
+                    item.producto_id,
+                    item.cantidad,
+                    precio
+                    ))
+    conn.commit()
+    conn.close()
+
+    # Mensaje de Exito 
+    return {
+        "mensaje" : "Pedido Creado Correctamente",
+        "pedido_id": pedido_id,
+        "total": total
+    }
+
+# Endpoint que utiliza la operacion GET para obtener los datos de los pedidos y sus detalles
+@app.get("/pedidos")
+def mostrar_pedidos():
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute(""" SELECT * FROM pedidos""")
+    pedidos = [dict(row) for row in cursor.fetchall()]
+
+    # Bucle que realiza un JOIN de las tablas pedidos y detalle_pedidos, para que visualmente el resultado sea mas completo
+    for pedido in pedidos:
+        cursor.execute("""
+            SELECT 
+                pd.producto_id,
+                pd.cantidad,
+                pd.precio_unitario,
+                p.nombre,
+                p.categoria
+            FROM pedido_detalle pd
+            JOIN productos p ON pd.producto_id = p.producto_id
+            WHERE pd.pedido_id = ?
+        """, (pedido['pedido_id'],))
+        
+        pedido['items'] = [dict(row) for row in cursor.fetchall()]
+    conn.close()
+    return pedidos
+
