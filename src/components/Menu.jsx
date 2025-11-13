@@ -1,5 +1,9 @@
+// `Menu.jsx` - muestra la cuadrícula de productos y permite agregarlos al carrito.
+// - Obtiene productos desde la API `GET /productos`.
+// - Filtra por categoría y usa `addToCart` del contexto para añadir productos.
 import { useCart } from './CartContext';
 import { useState, useEffect } from "react";
+import { getProductIcon } from './productIcons';
 import "./Menu.css";
 
 export const Menu = () => {
@@ -10,6 +14,7 @@ export const Menu = () => {
   const [error, setError] = useState(null);
 
   useEffect(() => {
+    // fetchProducts: obtiene la lista de productos desde el backend
     const fetchProducts = async () => {
       try {
         setLoading(true);
@@ -29,9 +34,11 @@ export const Menu = () => {
       }
     };
 
+    // se llama una vez al montar el componente
     fetchProducts();
   }, []);
 
+  // Filtrado sencillo por categoría. 'todos' devuelve todo el array.
   const filteredProducts =
     selectedCategory === "todos"
       ? products
@@ -105,23 +112,16 @@ export const Menu = () => {
 
         {!loading && !error && (
           <div className="products-grid">
-            {filteredProducts.map((product) => (
-              <div key={product.producto_id} className="product-card">
+            {filteredProducts.map((product) => {
+              const lowerName = (product.nombre || '').toLowerCase();
+              const isWideCard = lowerName.includes('cuatro') && lowerName.includes('quesos');
+              return (
+                <div key={product.producto_id} className={`product-card ${isWideCard ? 'product-card--wide' : ''}`}>
                 {/* Imagen del producto */}
                 <div className="product-image">
-                  {product.imagen ? (
-                    <img
-                      src={product.imagen}
-                      alt={product.nombre}
-                      className="product-img"
-                    />
-                  ) : (
-                    <div className="product-emoji">
-                      {product.categoria === "pizza" && "🍕"}
-                      {product.categoria === "sandwich" && "🥪"}
-                      {product.categoria === "wrap" && "🌯"}
-                    </div>
-                  )}
+                  <div className="product-icon">
+                    {getProductIcon(product.categoria, product.nombre, 48)}
+                  </div>
                 </div>
 
                 {/* Información del producto */}
@@ -138,7 +138,8 @@ export const Menu = () => {
                   </div>
                 </div>
               </div>
-            ))}
+            );
+          })}
           </div>
         )}
 

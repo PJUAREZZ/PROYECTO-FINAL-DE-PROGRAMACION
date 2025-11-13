@@ -1,8 +1,13 @@
+// `Cart.jsx` - componente que muestra el carrito en un sidebar.
+// - Usa `useCart()` para leer estado y acciones del carrito (contexto global).
+// - Permite cambiar cantidades, eliminar items y realizar el checkout.
 import { useState } from 'react';
 import { useCart } from './CartContext';
+import { getProductIcon } from './productIcons';
 import './Cart.css';
 
 export const Cart = () => {
+  // Extraemos funciones y estado del contexto del carrito
   const {
     cart,
     cartOpen,
@@ -13,11 +18,9 @@ export const Cart = () => {
     clearCart
   } = useCart();
 
+  // Estado local para manejar el modal de checkout y formulario
   const [showCheckout, setShowCheckout] = useState(false);
-  const [checkoutData, setCheckoutData] = useState({
-    nombre_cliente: '',
-    direccion: ''
-  });
+  const [checkoutData, setCheckoutData] = useState({ nombre_cliente: '', direccion: '' });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
@@ -34,13 +37,11 @@ export const Cart = () => {
 
     try {
       // Preparar los datos para la API
+      // Construir objeto pedido con formato esperado por la API backend
       const pedido = {
         nombre_cliente: checkoutData.nombre_cliente,
         direccion: checkoutData.direccion,
-        detalles: cart.map(item => ({
-          producto_id: item.producto_id,
-          cantidad: item.quantity
-        }))
+        detalles: cart.map(item => ({ producto_id: item.producto_id, cantidad: item.quantity }))
       };
 
       // Enviar a la API
@@ -52,16 +53,13 @@ export const Cart = () => {
         body: JSON.stringify(pedido)
       });
 
-      if (!response.ok) {
-        throw new Error('Error al procesar el pedido');
-      }
-
+      if (!response.ok) throw new Error('Error al procesar el pedido');
       const result = await response.json();
-      
-      // Éxito
+
+      // Mensaje de éxito (puedes reemplazar alert por un toast más elegante)
       alert(`¡Pedido realizado exitosamente! 🎉\nNúmero de pedido: ${result.pedido_id}\nTotal: $${result.total.toLocaleString()}`);
-      
-      // Limpiar carrito y cerrar
+
+      // Limpiar estado local y global del carrito
       clearCart();
       setShowCheckout(false);
       setCartOpen(false);
@@ -75,6 +73,7 @@ export const Cart = () => {
     }
   };
 
+  // Si el carrito está cerrado no renderizamos nada
   if (!cartOpen) return null;
 
   return (
@@ -102,14 +101,7 @@ export const Cart = () => {
                   <div className="cart-item-header">
                     <div className="cart-item-info">
                       <div className="cart-item-icon">
-                        {item.imagen ? (
-                          <img src={item.imagen} alt={item.nombre} className="cart-item-img" />
-                        ) : (
-                          <span>
-                            {item.categoria === 'pizza' ? '🍕' : 
-                             item.categoria === 'sandwich' ? '🥪' : '🌯'}
-                          </span>
-                        )}
+                        {getProductIcon(item.categoria, item.nombre, 28)}
                       </div>
                       <div>
                         <h3 className="cart-item-name">{item.nombre}</h3>
