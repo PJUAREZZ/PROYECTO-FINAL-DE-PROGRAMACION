@@ -9,8 +9,8 @@ Resumen:
 - Usa Pydantic (`BaseModel`) para validar los datos entrantes (payloads JSON).
 
 Uso rápido (desde la raíz del proyecto):
-    1. Instalar dependencias: `pip install -r requirements.txt`
-    2. Levantar servidor en modo desarrollo: `uvicorn main:app --reload`
+    1. Instalar dependencias: `pip3 install -r requirements.txt`
+    2. Levantar servidor en modo desarrollo: `python3 -m uvicorn main:app --reload`
 
 Comentarios en el código: cada función/endpoint tiene un comentario que explica su propósito.
 """
